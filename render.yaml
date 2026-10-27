@@ -1,18 +1,43 @@
 services:
   - type: web
-    name: cygeniq-agent
+    name: cygeniq-ai-labs
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
-    envVars:
-      - key: GROQ_API_KEY
-        sync: false   # Groq API key — paste in the Render dashboard
-      - key: SUPABASE_URL
-        sync: false   # postgresql://... connection string from Supabase
-      - key: AZURE_TENANT_ID
-        sync: false   # Azure AD Tenant ID for SharePoint MCP
-      - key: AZURE_CLIENT_ID
-        sync: false   # Azure App Registration Client ID
-      - key: AZURE_CLIENT_SECRET
-        sync: false   # Azure App Registration Client Secret
+    region: oregon          # closest to Supabase ap-northeast-2
     healthCheckPath: /
+
+    envVars:
+      # ── LLM ────────────────────────────────────────────────
+      - key: GROQ_API_KEY
+        sync: false         # paste your gsk_... key in Render dashboard
+
+      # ── Database ───────────────────────────────────────────
+      - key: SUPABASE_URL
+        sync: false         # postgresql://user:password@host:5432/dbname
+
+      # ── Azure / SharePoint ─────────────────────────────────
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_SECRET
+        sync: false
+
+      # ── Gmail IMAP/SMTP ────────────────────────────────────
+      - key: GMAIL_ADDRESS
+        sync: false         # e.g. yourname@gmail.com
+      - key: GMAIL_APP_PASSWORD
+        sync: false         # 16-char App Password from Google Account settings
+
+      # ── Optional / Internal ────────────────────────────────
+      - key: INTERNAL_API_BASE
+        sync: false
+      - key: INTERNAL_API_TOKEN
+        sync: false
+
+      # ── Python / Runtime settings ──────────────────────────
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PORT
+        value: "8000"

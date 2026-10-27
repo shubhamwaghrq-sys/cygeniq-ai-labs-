@@ -1,7 +1,10 @@
-# Use official Python 3.11 slim image as base
+# ============================================================
+# Cygeniq AI Labs — Production Dockerfile
+# Python 3.11 + Node.js 20 (for npx MCP servers)
+# ============================================================
 FROM python:3.11-slim
 
-# Install Node.js 20 (required for npx MCP servers)
+# Install Node.js 20 (required for npx MCP servers: filesystem, postgres, memory)
 RUN apt-get update && apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
@@ -10,20 +13,23 @@ RUN apt-get update && apt-get install -y curl && \
 # Set working directory
 WORKDIR /app
 
-# Copy and install Python dependencies first (for better layer caching)
+# Copy and install Python dependencies (separate layer for caching)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install additional deps needed by sharepoint_mcp.py
-RUN pip install --no-cache-dir msal python-docx
-
-# Pre-install the npx MCP packages so they don't need to download at runtime
+# Pre-cache the npx MCP packages so they don't download at runtime
+# (avoids cold-start latency and network issues in production)
 RUN npx -y @modelcontextprotocol/server-filesystem --help || true
 RUN npx -y @modelcontextprotocol/server-postgres --help || true
 RUN npx -y @modelcontextprotocol/server-memory --help || true
 
-# Copy the rest of the application code
-COPY agent.py server.py sharepoint_mcp.py policy_mcp.py product_mcp.py grc_mcp.py ./
+# Copy all application source files
+COPY agent.py server.py ./
+COPY sharepoint_mcp.py policy_mcp.py product_mcp.py grc_mcp.py gmail_mcp.py ./
+COPY security_simulator.py security_checks.py security_db.py ./
+COPY convert.py ./
+
+# Copy static assets and knowledge base
 COPY static/ ./static/
 COPY knowledge/ ./knowledge/
 
@@ -31,4 +37,5 @@ COPY knowledge/ ./knowledge/
 EXPOSE 8000
 
 # Start the FastAPI server
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+# Using 2 workers, timeout 120s for MCP tool calls
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--timeout-keep-alive", "120"]
