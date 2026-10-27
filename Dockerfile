@@ -37,5 +37,6 @@ COPY knowledge/ ./knowledge/
 EXPOSE 8000
 
 # Start the FastAPI server
-# Using 2 workers, timeout 120s for MCP tool calls
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--timeout-keep-alive", "120"]
+# Using workers 1, timeout 120s for MCP tool calls, binding to $PORT provided by Render (defaults to 8000)
+CMD sh -c "uvicorn server:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 120"
+
