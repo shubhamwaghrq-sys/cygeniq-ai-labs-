@@ -1,16 +1,27 @@
-# Core LangGraph agent
+# ============================================================
+# Cygeniq AI Labs — Python Dependencies
+# ============================================================
+
+# Core LangChain / LangGraph stack
+langchain
+langchain-core
+langchain-openai
+langchain-community
 langgraph
 langgraph-checkpoint-sqlite
-aiosqlite
 langchain-mcp-adapters==0.1.10
+
+# Async SQLite (LangGraph memory checkpointer)
+aiosqlite
+
+# MCP protocol
 mcp>=1.6.0,<2.0.0
-langchain-openai
 
 # Web server
 fastapi
-uvicorn
+uvicorn[standard]
 
-# SharePoint MCP
+# SharePoint MCP (Azure MSAL + docx parsing)
 msal
 python-docx
 
